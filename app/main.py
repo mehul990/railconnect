@@ -55,7 +55,7 @@ def root():
         "status": "online",
         "documentation": "/docs",
         "frontend_ui": "/ui",
-        "vercel_deployment": "https://railconnect-chi.vercel.app",
+        "vercel_deployment": "https://railconnect-mehul.vercel.app",
         "api_v1_base": settings.API_V1_STR,
         "message": "Welcome to RailConnect API. Browse /docs for interactive Swagger API testing, or /ui for the interactive web frontend."
     }
