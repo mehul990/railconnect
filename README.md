@@ -1,14 +1,18 @@
-# 🚆 RailConnect — High-Reliability Railway Booking Backend
+# 🚆 RailConnect — Full-Stack Railway Reservation Platform
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
-[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![SQLModel](https://img.shields.io/badge/SQLModel-SQLite-orange.svg)](https://sqlmodel.tiangolo.com/)
-[![Tests](https://img.shields.io/badge/Tests-25%20Passed%20%28100%25%29-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/License-MIT-purple.svg)]()
+[![Live Demo on Vercel](https://img.shields.io/badge/Vercel-Live%20Demo-black.svg?style=for-the-badge&logo=vercel)](https://railconnect-chi.vercel.app)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=for-the-badge&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/Tests-25%20Passed%20%28100%25%29-brightgreen.svg?style=for-the-badge)]()
 
-> A robust, concurrency-safe, production-ready railway reservation backend built with **FastAPI**, **SQLModel**, and **SQLite**. RailConnect handles passenger authentication, admin railway management, multi-hop train search, atomic booking with PNR generation, and zero-race-condition seat releases.
+> **Live Vercel Application**: **[https://railconnect-chi.vercel.app](https://railconnect-chi.vercel.app)**  
+> A complete, production-ready, full-stack railway reservation platform featuring a sleek responsive web frontend and a robust FastAPI backend. RailConnect handles passenger authentication, admin railway management, multi-hop train search, atomic booking with PNR generation, zero-race-condition seat releases, and instant simulated refunds.
 
 ---
+
+## 🌐 Live Deployment
+- **Web Frontend**: [https://railconnect-chi.vercel.app](https://railconnect-chi.vercel.app)
+- **GitHub Repository**: [https://github.com/mehul990/railconnect](https://github.com/mehul990/railconnect)
 
 ## 📋 Table of Contents
 

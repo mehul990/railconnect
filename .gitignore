@@ -14,3 +14,5 @@ env/
 *.sqlite3
 .DS_Store
 Thumbs.db
+.vercel/
+frontend/.vercel/

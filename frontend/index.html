@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RailConnect 🚆 | Railway Booking System</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%3E<text y=%2226%22 font-size=%2224%22>🚆</text></svg>">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            rail: {
+              50: '#f0fdf9',
+              100: '#ccfbee',
+              500: '#0d9488',
+              600: '#0f766e',
+              700: '#115e59',
+              800: '#134e4a',
+              900: '#042f2e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Outfit', sans-serif; }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(229, 231, 235, 0.8);
+    }
+    .ticket-cutout {
+      position: relative;
+    }
+    .ticket-cutout::before, .ticket-cutout::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #f3f4f6;
+      border-radius: 50%;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .ticket-cutout::before { left: -10px; }
+    .ticket-cutout::after { right: -10px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- Navigation Bar -->
+  <header class="bg-gradient-to-r from-teal-800 to-teal-950 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Brand Logo -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('search')">
+          <div class="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center text-2xl shadow-md">
+            🚆
+          </div>
+          <div>
+            <div class="font-bold text-xl tracking-tight flex items-center gap-2">
+              RailConnect
+              <span class="text-xs bg-teal-600/80 text-teal-100 font-medium px-2 py-0.5 rounded-full border border-teal-400/30">Backend & UI</span>
+            </div>
+            <p class="text-xs text-teal-200">Modern Railway Reservation</p>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Tabs -->
+        <nav class="hidden md:flex space-x-1 lg:space-x-2">
+          <button id="nav-search" onclick="switchTab('search')" class="px-3.5 py-2 rounded-lg text-sm font-medium transition bg-teal-700/60 text-white flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass"></i> Find Trains
+          </button>
+          <button id="nav-pnr" onclick="switchTab('pnr')" class="px-3.5 py-2 rounded-lg text-sm font-medium text-teal-100 hover:bg-teal-800/80 hover:text-white transition flex items-center gap-2">
+            <i class="fa-solid fa-ticket"></i> PNR Status
+          </button>
+          <button id="nav-bookings" onclick="switchTab('bookings')" class="px-3.5 py-2 rounded-lg text-sm font-medium text-teal-100 hover:bg-teal-800/80 hover:text-white transition flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left"></i> My Bookings
+          </button>
+          <button id="nav-admin" onclick="switchTab('admin')" class="px-3.5 py-2 rounded-lg text-sm font-medium text-teal-100 hover:bg-teal-800/80 hover:text-white transition flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved"></i> Admin Console
+          </button>
+        </nav>
+
+        <!-- Right Side: Auth / Profile & Server Indicator -->
+        <div class="flex items-center space-x-3">
+          <!-- Backend Connection Badge -->
+          <div id="backend-status-pill" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="backend-status-text">Live Ready</span>
+          </div>
+
+          <div id="user-auth-section" class="flex items-center space-x-2">
+            <button onclick="openAuthModal('login')" class="px-3 py-1.5 text-xs sm:text-sm font-medium text-teal-100 hover:text-white border border-teal-600 rounded-lg transition hover:bg-teal-800">
+              Log In
+            </button>
+            <button onclick="openAuthModal('register')" class="px-3.5 py-1.5 text-xs sm:text-sm font-medium bg-teal-500 hover:bg-teal-400 text-slate-900 font-semibold rounded-lg shadow transition">
+              Sign Up
+            </button>
+          </div>
+
+          <div id="user-profile-section" class="hidden flex items-center space-x-3">
+            <div class="text-right hidden sm:block">
+              <div id="profile-name" class="text-sm font-semibold text-white">Passenger</div>
+              <div id="profile-role" class="text-xs text-teal-300 capitalize">Passenger</div>
+            </div>
+            <button onclick="logoutUser()" title="Log out" class="w-9 h-9 rounded-full bg-teal-800 border border-teal-600 flex items-center justify-center hover:bg-red-600 transition text-white">
+              <i class="fa-solid fa-power-off text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: SEARCH & BOOK TRAINS                -->
+    <!-- ========================================== -->
+    <section id="tab-search" class="space-y-8">
+      
+      <!-- Hero Banner & Search Engine -->
+      <div class="relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 text-white p-6 sm:p-10">
+        <div class="absolute -right-20 -bottom-20 opacity-10 pointer-events-none">
+          <i class="fa-solid fa-train text-[320px]"></i>
+        </div>
+
+        <div class="max-w-3xl mb-8 relative z-10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-300 text-xs font-medium mb-3">
+            <i class="fa-solid fa-bolt"></i> Instant Railway Booking & PNR Dispatch
+          </div>
+          <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight">
+            Book Train Tickets Online
+          </h1>
+          <p class="mt-2 text-sm sm:text-base text-teal-100/80">
+            Real-time seat quotas, multi-hop routes, unique PNR generation, and instant cancellation refunds.
+          </p>
+        </div>
+
+        <!-- Search Box Card -->
+        <div class="bg-white rounded-2xl p-6 sm:p-8 text-slate-800 shadow-xl border border-slate-100 relative z-10">
+          <form id="search-form" onsubmit="handleTrainSearch(event)" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            
+            <!-- From Station -->
+            <div class="md:col-span-4">
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <i class="fa-solid fa-location-dot text-teal-600 mr-1"></i> From Station
+              </label>
+              <div class="relative">
+                <select id="search-source" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                  <option value="NDLS" selected>New Delhi (NDLS)</option>
+                  <option value="CNB">Kanpur Central (CNB)</option>
+                  <option value="LKO">Lucknow Charbagh (LKO)</option>
+                  <option value="PRYJ">Prayagraj Junction (PRYJ)</option>
+                  <option value="BSB">Varanasi Junction (BSB)</option>
+                  <option value="MMCT">Mumbai Central (MMCT)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Swap Stations Button -->
+            <div class="md:col-span-1 flex justify-center pb-2">
+              <button type="button" onclick="swapStations()" title="Swap Origin & Destination" class="w-10 h-10 rounded-full bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 flex items-center justify-center transition shadow-sm">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+              </button>
+            </div>
+
+            <!-- To Station -->
+            <div class="md:col-span-4">
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <i class="fa-solid fa-flag-checkered text-teal-600 mr-1"></i> To Station
+              </label>
+              <div class="relative">
+                <select id="search-destination" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                  <option value="CNB" selected>Kanpur Central (CNB)</option>
+                  <option value="NDLS">New Delhi (NDLS)</option>
+                  <option value="LKO">Lucknow Charbagh (LKO)</option>
+                  <option value="PRYJ">Prayagraj Junction (PRYJ)</option>
+                  <option value="BSB">Varanasi Junction (BSB)</option>
+                  <option value="MMCT">Mumbai Central (MMCT)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Journey Date -->
+            <div class="md:col-span-3">
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <i class="fa-solid fa-calendar-days text-teal-600 mr-1"></i> Journey Date
+              </label>
+              <input type="date" id="search-date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+
+            <!-- Submit Button -->
+            <div class="md:col-span-12 mt-2 flex justify-end">
+              <button type="submit" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white font-bold rounded-xl shadow-lg hover:shadow-teal-600/30 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-magnifying-glass"></i> Search Available Trains
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Search Results Container -->
+      <div id="search-results-section" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span id="results-count" class="w-7 h-7 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center">0</span>
+            Available Trains
+          </h2>
+          <span id="results-route-tag" class="text-xs text-slate-500 font-medium"></span>
+        </div>
+
+        <div id="trains-list" class="grid grid-cols-1 gap-4">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: PNR STATUS & CANCELLATION           -->
+    <!-- ========================================== -->
+    <section id="tab-pnr" class="hidden space-y-6">
+      <div class="max-w-2xl mx-auto text-center space-y-2">
+        <h2 class="text-3xl font-extrabold text-slate-900">Check PNR Status</h2>
+        <p class="text-sm text-slate-500">
+          Enter your 10-character RailConnect PNR number to check live booking status or cancel ticket.
+        </p>
+      </div>
+
+      <div class="max-w-xl mx-auto bg-white rounded-2xl p-6 shadow-md border border-slate-100">
+        <form onsubmit="handlePnrLookup(event)" class="flex gap-2">
+          <input type="text" id="pnr-input" placeholder="e.g. RC84920173" required maxlength="12" class="flex-grow bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 uppercase tracking-wider font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+          <button type="submit" class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition shadow flex items-center gap-2">
+            <i class="fa-solid fa-search"></i> Check
+          </button>
+        </form>
+      </div>
+
+      <div id="pnr-result-box" class="max-w-2xl mx-auto hidden">
+        <!-- Rendered PNR Ticket Card -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: MY BOOKINGS                         -->
+    <!-- ========================================== -->
+    <section id="tab-bookings" class="hidden space-y-6">
+      <div class="flex items-center justify-between border-b pb-4 border-slate-200">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">My Booking History</h2>
+          <p class="text-xs text-slate-500">All tickets booked under your account.</p>
+        </div>
+        <button onclick="loadUserBookings()" class="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+      </div>
+
+      <div id="my-bookings-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: ADMIN CONSOLE                       -->
+    <!-- ========================================== -->
+    <section id="tab-admin" class="hidden space-y-8">
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-6 flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl flex-shrink-0">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-amber-900 text-base">Railway Administrator Panel</h3>
+          <p class="text-xs text-amber-700 mt-1">
+            Authorize as administrator (`admin@railconnect.com`) to add trains, define routes, configure stations, and update seat capacity.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Add Train Form -->
+        <div class="lg:col-span-7 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-4">
+          <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-b pb-3">
+            <i class="fa-solid fa-train text-teal-600"></i> Add New Train
+          </h3>
+          <form onsubmit="handleAdminAddTrain(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Train Number</label>
+              <input type="text" id="adm-train-no" placeholder="e.g. 12005" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Train Name</label>
+              <input type="text" id="adm-train-name" placeholder="e.g. Kalka Shatabdi" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Source Code</label>
+              <input type="text" id="adm-src" placeholder="NDLS" uppercase required maxlength="10" class="w-full uppercase bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Destination Code</label>
+              <input type="text" id="adm-dst" placeholder="CNB" uppercase required maxlength="10" class="w-full uppercase bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Departure Time (HH:MM)</label>
+              <input type="text" id="adm-dep" placeholder="06:30" required pattern="\d{2}:\d{2}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Arrival Time (HH:MM)</label>
+              <input type="text" id="adm-arr" placeholder="11:45" required pattern="\d{2}:\d{2}" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Total Seat Capacity</label>
+              <input type="number" id="adm-seats" placeholder="120" min="1" max="2000" value="120" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Base Fare (₹)</label>
+              <input type="number" id="adm-fare" placeholder="750" min="0" step="10" value="750" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            </div>
+            <div class="sm:col-span-2 pt-2">
+              <button type="submit" class="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition shadow">
+                Save Train to Directory
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Train Inventory & Active Directory -->
+        <div class="lg:col-span-5 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-4">
+          <div class="flex items-center justify-between border-b pb-3">
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-teal-600"></i> Managed Trains
+            </h3>
+            <button onclick="renderAdminTrainsList()" class="text-xs text-teal-600 hover:underline">Reload</button>
+          </div>
+          <div id="admin-trains-list" class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: BOOKING DIALOG                      -->
+  <!-- ========================================== -->
+  <div id="booking-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b pb-4">
+        <div>
+          <span class="text-xs uppercase font-bold text-teal-600 tracking-wider">Confirm Reservation</span>
+          <h3 id="modal-train-title" class="text-xl font-bold text-slate-900">New Delhi - Kanpur Shatabdi</h3>
+        </div>
+        <button onclick="closeBookingModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="bg-teal-50 border border-teal-100 rounded-xl p-4 flex justify-between text-xs sm:text-sm text-teal-900">
+        <div>
+          <span class="text-teal-600 block text-xs">Route</span>
+          <span id="modal-route" class="font-bold">NDLS ➔ CNB</span>
+        </div>
+        <div>
+          <span class="text-teal-600 block text-xs">Date</span>
+          <span id="modal-date" class="font-bold">2026-10-22</span>
+        </div>
+        <div>
+          <span class="text-teal-600 block text-xs">Fare / Seat</span>
+          <span id="modal-fare" class="font-bold">₹750</span>
+        </div>
+      </div>
+
+      <!-- Passengers Form -->
+      <form id="booking-form" onsubmit="handleConfirmBooking(event)" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Passenger Details</label>
+          <button type="button" onclick="addPassengerRow()" class="text-xs text-teal-600 hover:text-teal-700 font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-plus"></i> Add Passenger
+          </button>
+        </div>
+
+        <div id="passengers-container" class="space-y-3">
+          <!-- Passenger Rows -->
+        </div>
+
+        <!-- Total Fare Card -->
+        <div class="border-t pt-4 flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-500">Total Payable Fare:</span>
+            <div id="modal-total-fare" class="text-2xl font-black text-teal-700">₹750</div>
+          </div>
+          <button type="submit" class="px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2">
+            <i class="fa-solid fa-check"></i> Pay & Book Ticket
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: AUTH DIALOG (LOGIN / REGISTER)      -->
+  <!-- ========================================== -->
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
+      <div class="flex items-center justify-between border-b pb-4">
+        <h3 id="auth-modal-title" class="text-xl font-bold text-slate-900">Sign In to RailConnect</h3>
+        <button onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <div id="auth-name-group" class="hidden">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
+          <input type="text" id="auth-name" placeholder="Mehul Sharma" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Email Address</label>
+          <input type="email" id="auth-email" required placeholder="user@railconnect.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+          <input type="password" id="auth-password" required minlength="6" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+        </div>
+
+        <div id="auth-role-group" class="hidden">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Account Role</label>
+          <select id="auth-role" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
+            <option value="passenger" selected>Passenger</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </div>
+
+        <div class="text-xs text-slate-500 pt-1 flex justify-between items-center">
+          <span id="auth-switch-text">Don't have an account?</span>
+          <button type="button" id="auth-switch-btn" onclick="toggleAuthMode()" class="text-teal-600 font-semibold hover:underline">
+            Register now
+          </button>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow transition">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 mt-12 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🚆</span>
+        <span class="font-bold text-white">RailConnect</span> — Full-Stack Railway Reservation Platform
+      </div>
+      <div>
+        Built with FastAPI, SQLModel & Tailwind CSS by <span class="text-teal-400 font-semibold">Mehul</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main Application Logic Script -->
+  <script src="app.js"></script>
+</body>
+</html>

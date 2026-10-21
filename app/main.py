@@ -37,6 +37,14 @@ app.include_router(trains.router, prefix=settings.API_V1_STR)
 app.include_router(bookings.router, prefix=settings.API_V1_STR)
 app.include_router(admin.router, prefix=settings.API_V1_STR)
 
+# Mount frontend web application at /ui
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+
+frontend_path = Path("frontend")
+if frontend_path.exists():
+    app.mount("/ui", StaticFiles(directory="frontend", html=True), name="frontend")
+
 
 @app.get("/", tags=["Health & Status"])
 def root():
@@ -46,8 +54,10 @@ def root():
         "version": settings.VERSION,
         "status": "online",
         "documentation": "/docs",
+        "frontend_ui": "/ui",
+        "vercel_deployment": "https://railconnect-chi.vercel.app",
         "api_v1_base": settings.API_V1_STR,
-        "message": "Welcome to RailConnect API. Browse /docs for interactive Swagger API testing."
+        "message": "Welcome to RailConnect API. Browse /docs for interactive Swagger API testing, or /ui for the interactive web frontend."
     }
 
 
